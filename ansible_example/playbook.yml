@@ -1,0 +1,109 @@
+---
+
+# ============================================================
+# Play 1: Node Exporter auf ALLEN Hosts installieren
+# (lokale VM + remote VM)
+# ============================================================
+- name: Node Exporter installieren
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Node Exporter via apt installieren
+      apt:
+        name: prometheus-node-exporter
+        state: present
+        update_cache: yes
+
+    - name: Node Exporter starten und beim Boot aktivieren
+      systemd:
+        name: prometheus-node-exporter
+        state: started
+        enabled: yes
+
+# ============================================================
+# Play 2: Prometheus auf der lokalen VM installieren
+# ============================================================
+- name: Prometheus installieren und konfigurieren
+  hosts: local
+  become: true
+
+  tasks:
+    - name: Prometheus via apt installieren
+      apt:
+        name: prometheus
+        state: present
+        update_cache: yes
+
+    - name: Prometheus-Konfiguration deployen
+      template:
+        src: config_files/prometheus.yml.j2
+        dest: /etc/prometheus/prometheus.yml
+        owner: prometheus
+        group: prometheus
+        mode: '0644'
+      notify: Prometheus neu starten
+
+    - name: Prometheus starten und beim Boot aktivieren
+      systemd:
+        name: prometheus
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Prometheus neu starten
+      systemd:
+        name: prometheus
+        state: restarted
+
+# ============================================================
+# Play 3: Grafana auf der lokalen VM installieren
+# ============================================================
+- name: Grafana installieren und konfigurieren
+  hosts: local
+  become: true
+
+  tasks:
+    - name: Benoetigte Pakete installieren
+      apt:
+        name:
+          - apt-transport-https
+          - software-properties-common
+          - wget
+        state: present
+        update_cache: yes
+
+    - name: Verzeichnis fuer APT-Keyrings erstellen
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Grafana GPG-Key herunterladen
+      get_url:
+        url: https://apt.grafana.com/gpg.key
+        dest: /tmp/grafana.gpg.key
+        mode: '0644'
+
+    - name: Grafana GPG-Key als Keyring speichern
+      shell: gpg --dearmor < /tmp/grafana.gpg.key > /etc/apt/keyrings/grafana.gpg
+      args:
+        creates: /etc/apt/keyrings/grafana.gpg
+
+    - name: Grafana APT-Repository hinzufuegen
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main"
+        state: present
+        filename: grafana
+        update_cache: yes
+
+    - name: Grafana installieren
+      apt:
+        name: grafana
+        state: present
+
+    - name: Grafana starten und beim Boot aktivieren
+      systemd:
+        name: grafana-server
+        state: started
+        enabled: yes

@@ -1,0 +1,27 @@
+# ============================================================
+# DIESE DATEI KOPIEREN UND ALS terraform.tfvars SPEICHERN
+# Dann die Werte mit euren eigenen Daten ersetzen!
+# ============================================================
+
+# Eure GCP Projekt-ID (in der Cloud Console oben links zu finden)
+project_id = "mein-projekt-123456"
+
+# Eure GCP Projektnummer (Cloud Console -> Projektinfo)
+project_number = "123456789012"
+
+# Region und Zone (Belgien - grosse Region, immer verfuegbar)
+region = "europe-west1"
+zone   = "europe-west1-b"
+
+# Name eurer VM
+vm_name = "meine-vm"
+
+# Maschinentyp
+machine_type = "g1-small"
+
+# SSH-Benutzername
+ssh_user = "ubuntu"
+
+# Euer oeffentlicher SSH-Schluessel (Inhalt von ~/.ssh/id_rsa.pub)
+# Den ganzen Schluessel als einen String einfuegen!
+ssh_public_key = "ssh-rsa AAAAB3Nza... euer-kommentar"

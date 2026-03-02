@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9100']
+        labels:
+          instance: 'localhost'
+{% for host in groups['remote_vms'] %}
+      - targets: ['[{{ hostvars[host].ansible_host }}]:9100']
+        labels:
+          instance: '{{ host }}'
+{% endfor %}
